@@ -1,6 +1,7 @@
 BLD_DIR = build
 DPT_DIR = build/.dpt
 BIN_DIR = bin
+DBG_DIR = dbg
 SRC_DIR = src
 
 CPP_SRC_FILES = $(shell find $(SRC_DIR) -name "*.cpp")
@@ -10,6 +11,7 @@ CPP_DPT_FILES = $(patsubst $(SRC_DIR)%, $(DPT_DIR)%, $(patsubst %.cpp, %.d, $(CP
 # put targets at the root of folder src!
 TARGETS = main
 TARGET_BIN_FILES = $(addprefix $(BIN_DIR)/, $(TARGETS))
+TARGET_DBG_FILES = $(addprefix $(DBG_DIR)/, $(TARGETS))
 TARGET_OBJ_FILES = $(patsubst %, $(BLD_DIR)/%.o, $(TARGETS))
 SUPPORT_OBJ_FILES = $(filter-out $(TARGET_OBJ_FILES), $(CPP_OBJ_FILES))
 
@@ -21,10 +23,14 @@ LDFLAGS =
 all: $(TARGET_BIN_FILES) 
 
 debug: CC_FLAGS += -glldb
-debug: all
+debug: $(TARGET_DBG_FILES)
 
 $(BIN_DIR)/%: $(BLD_DIR)/%.o $(SUPPORT_OBJ_FILES)
 	mkdir -p $(BIN_DIR)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+$(DBG_DIR)/%: $(BLD_DIR)/%.o $(SUPPORT_OBJ_FILES)
+	mkdir -p $(DBG_DIR)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 $(BLD_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -45,3 +51,4 @@ $(DPT_DIR)/%.d: $(SRC_DIR)/%.cpp
 clean:
 	rm -rf $(BLD_DIR)
 	rm -rf $(BIN_DIR)
+	rm -rf $(DBG_DIR)
