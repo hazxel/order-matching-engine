@@ -26,18 +26,17 @@ enum Instrument {
     LAST_INS
 };
 
-inline const Instrument operator++ (Instrument& i) {
-    if (i == LAST_INS) {
-        return FIRST_INS;
-    }
-    return static_cast<Instrument>(static_cast<int>(i) + 1);
-}
-
-inline Instrument & operator++ (Instrument& i, int) {
+inline Instrument & operator++ (Instrument& i) {
     if (i != LAST_INS) {
         i = static_cast<Instrument>(static_cast<int>(i) + 1);
     }
     return i;
+}
+
+inline const Instrument operator++ (Instrument& i, int) {
+    Instrument temp = i;
+    ++i;
+    return temp;
 }
 
 struct Order {

@@ -11,8 +11,8 @@ public:
     Engine();
     void place_order(Instrument ins, OrderSide side, double quant, double price);
     void cancel_order(OrderID order_id);
-    const TradeBook & get_executed_trades(Instrument instrument);
-    const OrderBook & get_open_orders(Instrument instrument);
+    inline const TradeBook & get_executed_trades(Instrument instrument) { return executed_trades_[instrument]; }
+    inline const OrderBook & get_open_orders(Instrument instrument) { return open_order_books_[instrument]; }
 
 private:
     inline OrderID generate_order_id() { return next_order_id_++; }

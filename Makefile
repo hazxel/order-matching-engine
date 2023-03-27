@@ -20,6 +20,9 @@ LDFLAGS =
 
 all: $(TARGET_BIN_FILES) 
 
+debug: CC_FLAGS += -glldb
+debug: all
+
 $(BIN_DIR)/%: $(BLD_DIR)/%.o $(SUPPORT_OBJ_FILES)
 	mkdir -p $(BIN_DIR)
 	$(CC) $^ -o $@ $(LDFLAGS)

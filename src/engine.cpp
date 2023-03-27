@@ -19,12 +19,3 @@ void Engine::cancel_order(OrderID orderId) {
     open_order_books_[order.instrument].erase(order);
     order_dict_.erase(orderId);
 }
-
-const TradeBook & Engine::get_executed_trades(Instrument instrument) {
-    return executed_trades_[instrument];
-}
-
-const OrderBook & Engine::get_open_orders(Instrument instrument) {
-    return open_order_books_[instrument];
-}
-
