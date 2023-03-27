@@ -1,30 +1,30 @@
 #include "engine.hpp"
 
-Engine::Engine() {
-    for (Instrument i = Instrument::FIRST_INS; i != Instrument::LAST_INS; ++i) {
-        open_order_books_[i] = OrderBook(order_price_comparator);
+Engine::Engine():next_order_id_(0) {
+    for (Instrument i = FIRST_INS; i != LAST_INS; ++i) {
+        open_order_books_[i] = OrderBook();
         executed_trades_[i] = TradeBook();
     }
 }
 
-Engine::~Engine() {
-
+void Engine::place_order(Instrument ins, OrderSide side, double quant, double price) {
+    Order order = {generate_order_id(), ins, side, quant, price};
+    open_order_books_[ins].insert(order);
+    order_dict_[order.id] = order;
 }
 
-void Engine::place_order(Order order) {
 
+void Engine::cancel_order(OrderID orderId) {
+    Order order = order_dict_[orderId];
+    open_order_books_[order.instrument].erase(order);
+    order_dict_.erase(orderId);
 }
 
-
-void Engine::cancel_order(OrderID order_id) {
-
-}
-
-TradeBook Engine::get_executed_trades(Instrument instrument) {
+const TradeBook & Engine::get_executed_trades(Instrument instrument) {
     return executed_trades_[instrument];
 }
 
-OrderBook Engine::get_open_orders(Instrument instrument) {
+const OrderBook & Engine::get_open_orders(Instrument instrument) {
     return open_order_books_[instrument];
 }
 

@@ -9,12 +9,17 @@
 class Engine {
 public:
     Engine();
-    ~Engine();
-    void place_order(Order order);
+    void place_order(Instrument ins, OrderSide side, double quant, double price);
     void cancel_order(OrderID order_id);
-    TradeBook get_executed_trades(Instrument instrument);
-    OrderBook get_open_orders(Instrument instrument);
+    const TradeBook & get_executed_trades(Instrument instrument);
+    const OrderBook & get_open_orders(Instrument instrument);
+
 private:
+    inline OrderID generate_order_id() { return next_order_id_++; }
+
+private:
+    OrderID next_order_id_;
+    OrderDict order_dict_;
     std::unordered_map<Instrument, OrderBook> open_order_books_;
     std::unordered_map<Instrument, TradeBook> executed_trades_;
 };
