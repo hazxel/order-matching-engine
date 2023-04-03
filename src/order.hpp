@@ -18,7 +18,7 @@ enum OrderStatus {
     OPEN,
     EXECUTED,
     PARCIAL_EXECUTED,
-    CANCELLED
+    CANCELED
 };
 
 enum Instrument {
@@ -49,7 +49,8 @@ struct Order {
     double price;
     double quantity;
     OrderStatus status;
-    // Order(OrderID i, Instrument ins, OrderSide s, double p, double q) : id(i), instrument(ins), side(s), price(p), quantity(q), status(OPEN) {}
+    Order() {}
+    Order(OrderID i, Instrument ins, OrderSide s, double p, double q) : id(i), instrument(ins), side(s), price(p), quantity(q), status(OPEN) {}
 };
 
 struct BuyOrderPriceComparator {
@@ -84,12 +85,14 @@ struct IncomingOrder {
     OrderSide side;
     double quant;
     double price;
+    IncomingOrder() {}
     IncomingOrder(Instrument i, OrderSide os, double q, double p) : ins(i), side(os), quant(q), price(p) {}
 };
 
 struct OutputConfirm {
     OrderID id;
     OrderStatus status;
+    OutputConfirm() {}
     OutputConfirm(OrderID i, OrderStatus s) : id(i), status(s) {}
 };
 

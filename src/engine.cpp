@@ -32,11 +32,11 @@ void Engine::place_order(Instrument ins, OrderSide side, double quant, double pr
 
 OutputConfirm Engine::get_confirm() {
     if (output_queue_.empty()) {
-        return {-1, CANCELLED};
+        return {-1, CANCELED};
     }
     std::unique_lock<std::mutex> lock(output_queue_mutex_);
     if (output_queue_.empty()) {
-        return {-1, CANCELLED};
+        return {-1, CANCELED};
     }
     OutputConfirm oc = output_queue_.front();
     output_queue_.pop();
@@ -97,14 +97,14 @@ void Engine::match_order(Order &order) {
 
     std::unique_lock<std::mutex> order_book_lock(order_book_mutex_);
     if (order.side == BUY ? order_book.sell.empty() : order_book.buy.empty()) {
-        //open
+        // no order to match
         return;
     }
     const Order &target_order = order.side == BUY ? *order_book.sell.begin() : *order_book.buy.begin();
     double price = calc_price(target_order, order);
 
     if (price < 0) {
-        // open
+        // no match
         return;
     }
 
@@ -118,30 +118,59 @@ void Engine::match_order(Order &order) {
             order.quantity -= target_order.quantity;
             order_book.sell.insert(order);
         }
-        remove_order(target_order);
         insert_confirm(order.id, PARCIAL_EXECUTED);
         insert_confirm(target_order.id, EXECUTED);
+        executed_trades_[ins].emplace_back(
+            order.side == BUY ? order.id : target_order.id, 
+            order.side == SELL ? order.id : target_order.id, 
+            price, 
+            target_order.quantity, 
+            ins);
+        remove_order(target_order);
         order_book_lock.unlock();
+        previous_transaction_price_[ins] = price;
         match_order(order);
     } else if (order.quantity < target_order.quantity) {
         insert_confirm(order.id, EXECUTED);
         insert_confirm(target_order.id, PARCIAL_EXECUTED);
         order_dict_[target_order.id].quantity -= order.quantity;
-        Order new_order = target_order;
-        new_order.quantity -= order.quantity;
         if (target_order.side == BUY) {
             order_book.buy.erase(target_order);
-            order_book.buy.insert(new_order);
+            order_book.buy.emplace(
+                target_order.id, 
+                target_order.instrument,
+                target_order.side,
+                target_order.price,
+                target_order.quantity - order.quantity);
         } else {
             order_book.sell.erase(target_order);
-            order_book.sell.insert(new_order);
+            order_book.sell.emplace(
+                target_order.id, 
+                target_order.instrument,
+                target_order.side,
+                target_order.price,
+                target_order.quantity - order.quantity);
         }
+        executed_trades_[ins].emplace_back(
+            order.side == BUY ? order.id : target_order.id, 
+            order.side == SELL ? order.id : target_order.id, 
+            price, 
+            order.quantity, 
+            ins);
         remove_order(order);
+        previous_transaction_price_[ins] = price;
     } else {
         insert_confirm(order.id, EXECUTED);
         insert_confirm(target_order.id, EXECUTED);
+        executed_trades_[ins].emplace_back(
+            order.side == BUY ? order.id : target_order.id, 
+            order.side == SELL ? order.id : target_order.id, 
+            price, 
+            order.quantity, 
+            ins);
         remove_order(order);
         remove_order(target_order);
+        previous_transaction_price_[ins] = price;
     }
 }
 
