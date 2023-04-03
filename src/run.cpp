@@ -1,4 +1,6 @@
 #include <iostream>
+#include <vector>
+#include <thread>
 #include <unordered_map>
 
 #include "order.hpp"
@@ -33,19 +35,28 @@ std::string status2str(OrderStatus s) {
     }
 }
 
-void place_order(Engine &engine, Instrument ins, OrderSide side, double quantity, double price) {
+void place_order(Engine &engine, int thread_id, Instrument ins, OrderSide side, double quantity, double price) {
     engine.place_order(ins, side, quantity, price);
-    std::cout << "instrument: " << ins2str(ins) << ", side: " << side2str(side) << ", price: " << price << ", quantity: " << quantity << std::endl;
+    std::cout << "thread: " << thread_id << ", instrument: " << ins2str(ins) << ", side: " << side2str(side) << ", price: " << price << ", quantity: " << quantity << std::endl;
 }
 
 int main() {
     Engine engine;
 
     std::cout << "Placing orders: " << std::endl;
-    place_order(engine, BTC, OrderSide::BUY, 5, 1);
-    place_order(engine, BTC, OrderSide::SELL, 1, 1);
-    place_order(engine, BTC, OrderSide::SELL, 1, 1);
-    place_order(engine, BTC, OrderSide::SELL, 7, 0.1);
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 1000; i++) {
+        threads.emplace_back([&engine, i]() {
+            place_order(engine, i, BTC, OrderSide::BUY, 5, 1);
+            place_order(engine, i, BTC, OrderSide::SELL, 1, 1);
+            place_order(engine, i, BTC, OrderSide::SELL, 1, 1);
+            place_order(engine, i, BTC, OrderSide::SELL, 7, 0.1);
+        });
+    }
+    for (auto &t : threads) {
+        t.join();
+    }
+
     
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 

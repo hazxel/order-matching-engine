@@ -15,7 +15,8 @@ If a match is found, the orders should be executed, and trade messages should be
 
 
 ### How to run
- - to make the project: `make`
+> only build and test on Mac OS X, and the project is built with C++20 with clang++ compiler
+ - to build the project: `make`
  - to run a simple case: `./bin/run`
 
 ### Matching strategy

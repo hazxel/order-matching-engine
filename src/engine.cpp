@@ -23,11 +23,14 @@ Engine::~Engine() {
 }
 
 void Engine::place_order(Instrument ins, OrderSide side, double quant, double price) {
-    {
-        std::unique_lock<std::mutex> lock(input_queue_mutex_);
-        input_queue_.emplace(ins, side, quant, price);
-    }
-    input_cv_.notify_one();
+    std::thread t([=](){
+        {
+            std::unique_lock<std::mutex> lock(input_queue_mutex_);
+            input_queue_.emplace(ins, side, quant, price);
+        }
+        input_cv_.notify_one();
+    });
+    t.detach();   
 }
 
 OutputConfirm Engine::get_confirm() {
@@ -45,8 +48,10 @@ OutputConfirm Engine::get_confirm() {
 
 
 void Engine::cancel_order(OrderID id) {
-    std::unique_lock<std::mutex> lock(order_book_mutex_);
-    remove_order(order_dict_[id]);
+    std::thread t([id, this](){
+        std::unique_lock<std::mutex> lock(order_book_mutex_);
+        remove_order(order_dict_[id]);
+    });
 }
 
 void Engine::remove_order(const Order &order) {

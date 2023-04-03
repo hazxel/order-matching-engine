@@ -16,8 +16,8 @@ public:
     ~Engine();
     void place_order(Instrument ins, OrderSide side, double quant, double price);
     void cancel_order(OrderID order_id);
-    inline const TradeBook & get_executed_trades(Instrument instrument) { return executed_trades_[instrument]; }
-    inline const OrderBook & get_open_orders(Instrument instrument) { return open_order_books_[instrument]; }
+    inline TradeBook get_executed_trades(Instrument instrument) { return executed_trades_[instrument]; }
+    inline OrderBook get_open_orders(Instrument instrument) { return open_order_books_[instrument]; }
     OutputConfirm get_confirm();
 
 private:
@@ -42,7 +42,7 @@ private:
     std::mutex order_book_mutex_;
     std::mutex output_queue_mutex_;
     std::condition_variable input_cv_;
-    std::condition_variable order_book_cv_;
+    // std::condition_variable order_book_cv_;
 
     std::thread insert_order_thread_;
     bool is_running_;
